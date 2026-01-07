@@ -1,116 +1,148 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Conflict Style Spectrum Quiz</title>
+<title>Conflict Style Spectrum – Manager vs Reportees</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 body { font-family: Arial, sans-serif; background:#f7f8fa; padding:20px; }
-.container { max-width:900px; margin:auto; background:#fff; padding:20px; border-radius:8px; }
+.container { max-width:1000px; margin:auto; background:#fff; padding:24px; border-radius:10px; }
 h1 { text-align:center; }
-.question { margin:15px 0; }
-button { padding:10px 16px; background:#4f46e5; color:#fff; border:none; border-radius:6px; cursor:pointer; }
+.question { margin:18px 0; padding-bottom:10px; border-bottom:1px solid #eee; }
+.scale label { margin-right:10px; }
+button { margin-top:20px; padding:12px 20px; background:#4f46e5; color:#fff; border:none; border-radius:8px; cursor:pointer; }
 .results { display:none; margin-top:30px; }
-.toggle { margin-top:15px; cursor:pointer; color:#4f46e5; }
-.manager { display:none; background:#f1f5f9; padding:15px; border-radius:6px; margin-top:10px; }
+.grid { display:grid; grid-template-columns:1fr 1fr; gap:30px; }
+.note { background:#eef2ff; padding:15px; border-radius:8px; margin-top:20px; }
 </style>
 </head>
+
 <body>
 <div class="container">
-<h1>Conflict Style Spectrum Quiz</h1>
-<p>Select the option (A or B) that feels most natural to you.</p>
+<h1>Conflict Style Spectrum</h1>
 
-<form id="quiz">
-<div id="questions"></div>
-<button type="button" onclick="calculate()">See My Results</button>
-</form>
+<p><b>Instructions:</b> For each statement, rate how often it describes your behaviour:</p>
+<ul>
+<li><b>With your Manager</b></li>
+<li><b>With your Reportees</b></li>
+</ul>
+
+<p>1 = Never · 2 = Seldom · 3 = Sometimes · 4 = Often · 5 = Always</p>
+
+<form id="quiz"></form>
+
+<button onclick="calculate()">See My Results</button>
 
 <div class="results" id="results">
-<h2>Your Conflict Style Mix</h2>
-<canvas id="radar"></canvas>
-<p id="summary"></p>
+<h2>Your Conflict Style Comparison</h2>
 
-<div class="toggle" onclick="toggleManager()">🔁 View Manager Lens</div>
-<div class="manager" id="managerLens"></div>
+<div class="grid">
+<div>
+<h3>With My Manager</h3>
+<canvas id="chartManager"></canvas>
+<p id="textManager"></p>
+</div>
+
+<div>
+<h3>With My Reportees</h3>
+<canvas id="chartReportees"></canvas>
+<p id="textReportees"></p>
+</div>
+</div>
+
+<div class="note">
+<h3>Reflection</h3>
+<ul>
+<li>Where do you see the biggest shift between managing up and down?</li>
+<li>Which styles feel deliberate vs automatic?</li>
+<li>Which style might you need to use more intentionally?</li>
+</ul>
+</div>
 </div>
 </div>
 
 <script>
 const questions = [
-["I let others take responsibility.","I stress common ground.","Turtle","Owl"],
-["I look for compromise.","I address all concerns.","Fox","Owl"],
-["I pursue my goals firmly.","I soothe feelings.","Shark","Teddy"],
-["I compromise.","I sacrifice my wishes.","Fox","Teddy"],
-["I seek joint solutions.","I avoid tension.","Owl","Turtle"],
-["I avoid unpleasantness.","I try to win.","Turtle","Shark"],
-["I postpone issues.","I trade points.","Turtle","Fox"],
-["I push goals.","I open discussion.","Shark","Owl"],
-["Differences aren’t worth it.","I push my way.","Turtle","Shark"],
-["I push goals.","I compromise.","Shark","Fox"],
-["I open issues.","I preserve harmony.","Owl","Teddy"],
-["I avoid controversy.","I trade positions.","Turtle","Fox"],
-["I propose middle ground.","I press my point.","Fox","Shark"],
-["I share ideas.","I argue logic.","Owl","Shark"],
-["I soothe feelings.","I avoid tension.","Teddy","Turtle"],
-["I protect feelings.","I persuade.","Teddy","Shark"],
-["I push goals.","I avoid tension.","Shark","Turtle"],
-["I yield for happiness.","I trade positions.","Teddy","Fox"],
-["I open issues.","I postpone.","Owl","Turtle"],
-["I work through differences.","I balance gains.","Owl","Fox"],
-["I’m considerate.","I’m direct.","Teddy","Owl"],
-["I seek middle ground.","I assert wishes.","Fox","Shark"],
-["I satisfy my wishes.","I let others decide.","Shark","Turtle"],
-["I meet their wishes.","I compromise.","Teddy","Fox"],
-["I show logic.","I’m considerate.","Shark","Teddy"],
-["I propose middle ground.","I satisfy wishes.","Fox","Shark"],
-["I avoid controversy.","I yield.","Turtle","Teddy"],
-["I push goals.","Differences aren’t worth it.","Shark","Turtle"],
-["I propose middle ground.","Differences aren’t worth it.","Fox","Turtle"],
-["I protect feelings.","I work it out.","Teddy","Owl"]
+"I avoid being put on the spot; I keep conflicts to myself.",
+"I use my influence to get my ideas accepted.",
+"I usually try to split the difference to resolve an issue.",
+"I generally try to satisfy the other's needs.",
+"I try to investigate an issue to find a solution acceptable to us.",
+"I usually avoid open discussion of my differences.",
+"I use my authority to make decisions in my favor.",
+"I try to find a middle course to resolve an impasse.",
+"I usually accommodate to the other's wishes.",
+"I try to integrate my ideas with the other's.",
+"I try to stay away from disagreement.",
+"I use my expertise to make decisions that favor me.",
+"I propose a middle ground for breaking deadlocks.",
+"I give in to the other's wishes.",
+"I try to work with the other to find solutions that satisfy both.",
+"I keep disagreements to myself to avoid hard feelings.",
+"I generally pursue my side of the issue.",
+"I negotiate to reach a compromise.",
+"I often go with the other's suggestions.",
+"I exchange accurate information so we can solve problems together.",
+"I try to avoid unpleasant exchanges.",
+"I sometimes use my power to win arguments.",
+"I use give-and-take to make compromises.",
+"I try to satisfy the other's expectations.",
+"I bring all concerns out in the open so issues can be resolved."
 ];
 
-const styles = ["Turtle","Teddy","Fox","Shark","Owl"];
-let scores = {Turtle:0,Teddy:0,Fox:0,Shark:0,Owl:0};
+const styleMap = {
+"Avoidance":[0,5,10,15,20],
+"Competition":[1,6,11,16,21],
+"Compromise":[2,7,12,17,22],
+"Accommodation":[3,8,13,18,23],
+"Collaboration":[4,9,14,19,24]
+};
 
-const qDiv = document.getElementById("questions");
+const styles = Object.keys(styleMap);
+const form = document.getElementById("quiz");
+
 questions.forEach((q,i)=>{
-  qDiv.innerHTML += `<div class='question'>
-  <p>${i+1}. ${q[0]} (A) / ${q[1]} (B)</p>
-  <label><input type='radio' name='q${i}' value='${q[2]}' required> A</label>
-  <label><input type='radio' name='q${i}' value='${q[3]}' required> B</label>
+  form.innerHTML += `
+  <div class="question">
+    <p><b>${i+1}. ${q}</b></p>
+    <div class="scale">
+      With My Manager:
+      ${[1,2,3,4,5].map(v=>`<label><input type="radio" name="m${i}" value="${v}" required> ${v}</label>`).join("")}
+    </div>
+    <div class="scale">
+      With My Reportees:
+      ${[1,2,3,4,5].map(v=>`<label><input type="radio" name="r${i}" value="${v}" required> ${v}</label>`).join("")}
+    </div>
   </div>`;
 });
 
 function calculate(){
-  scores = {Turtle:0,Teddy:0,Fox:0,Shark:0,Owl:0};
-  questions.forEach((_,i)=>{
-    const val = document.querySelector(`input[name="q${i}"]:checked`).value;
-    scores[val]++;
-  });
-  const total = Object.values(scores).reduce((a,b)=>a+b,0);
-  const perc = styles.map(s=>Math.round(scores[s]/total*100));
+  const scoresM = {}, scoresR = {};
+  styles.forEach(s=>{scoresM[s]=0; scoresR[s]=0;});
 
+  styles.forEach(style=>{
+    styleMap[style].forEach(i=>{
+      scoresM[style] += parseInt(document.querySelector(`input[name="m${i}"]:checked`).value);
+      scoresR[style] += parseInt(document.querySelector(`input[name="r${i}"]:checked`).value);
+    });
+  });
+
+  render(scoresM, "chartManager", "textManager");
+  render(scoresR, "chartReportees", "textReportees");
   document.getElementById("results").style.display="block";
-
-  new Chart(document.getElementById("radar"),{
-    type:"radar",
-    data:{labels:styles,datasets:[{data:perc,fill:true}]},
-    options:{scales:{r:{beginAtZero:true,max:40}}}
-  });
-
-  const dominant = styles[perc.indexOf(Math.max(...perc))];
-  document.getElementById("summary").innerText =
-   `Your dominant style is ${dominant}. You show a blend of styles depending on the situation.`;
-
-  document.getElementById("managerLens").innerHTML =
-   `<b>${dominant} – Manager Lens:</b><br>
-   Coach by recognising when this style helps and when another style is needed.`;
 }
 
-function toggleManager(){
-  const m = document.getElementById("managerLens");
-  m.style.display = m.style.display==="none"?"block":"none";
+function render(scores, chartId, textId){
+  const data = styles.map(s=>Math.round(scores[s] / 25 * 100));
+  new Chart(document.getElementById(chartId), {
+    type: "radar",
+    data: { labels: styles, datasets: [{ data, fill:true }] },
+    options: { scales: { r: { beginAtZero:true, max:100 } } }
+  });
+
+  const dominant = styles[data.indexOf(Math.max(...data))];
+  document.getElementById(textId).innerText =
+    "Dominant style: " + dominant + ". This reflects how frequently you rely on this approach in this relationship.";
 }
 </script>
 </body>
