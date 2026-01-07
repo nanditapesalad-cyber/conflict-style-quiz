@@ -5,45 +5,92 @@
 <title>Conflict Style Spectrum – Manager vs Reportees</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-body { font-family: Arial, sans-serif; background:#f7f8fa; padding:20px; }
-.container { max-width:1000px; margin:auto; background:#fff; padding:24px; border-radius:10px; }
-h1 { text-align:center; }
-.question { margin:18px 0; padding-bottom:10px; border-bottom:1px solid #eee; }
-.scale label { margin-right:10px; }
-button { margin-top:20px; padding:12px 20px; background:#4f46e5; color:#fff; border:none; border-radius:8px; cursor:pointer; }
-.results { display:none; margin-top:30px; }
-.grid { display:grid; grid-template-columns:1fr 1fr; gap:30px; }
-.note { background:#eef2ff; padding:15px; border-radius:8px; margin-top:20px; }
+body {
+  font-family: Inter, Arial, sans-serif;
+  background: linear-gradient(135deg,#eef2ff,#f8fafc);
+  padding:20px;
+}
+.container {
+  max-width:1100px;
+  margin:auto;
+  background:#ffffff;
+  padding:32px;
+  border-radius:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.08);
+}
+h1 { text-align:center; margin-bottom:8px; }
+.subtitle { text-align:center; color:#555; margin-bottom:30px; }
+.question {
+  margin:22px 0;
+  padding-bottom:16px;
+  border-bottom:1px solid #e5e7eb;
+}
+.scale {
+  margin-top:8px;
+}
+.scale label {
+  margin-right:12px;
+  font-size:14px;
+}
+button {
+  margin-top:30px;
+  padding:14px 26px;
+  background:#4f46e5;
+  color:#fff;
+  border:none;
+  border-radius:10px;
+  font-size:16px;
+  cursor:pointer;
+}
+button:hover { background:#4338ca; }
+.results {
+  display:none;
+  margin-top:50px;
+}
+.grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:40px;
+}
+.card {
+  background:#f9fafb;
+  padding:20px;
+  border-radius:14px;
+}
+.card h3 { margin-top:0; }
+.note {
+  background:#eef2ff;
+  padding:20px;
+  border-radius:14px;
+  margin-top:40px;
+}
 </style>
 </head>
 
 <body>
 <div class="container">
 <h1>Conflict Style Spectrum</h1>
+<p class="subtitle">
+Understand how your conflict style shifts when managing up vs managing down
+</p>
 
-<p><b>Instructions:</b> For each statement, rate how often it describes your behaviour:</p>
-<ul>
-<li><b>With your Manager</b></li>
-<li><b>With your Reportees</b></li>
-</ul>
-
-<p>1 = Never · 2 = Seldom · 3 = Sometimes · 4 = Often · 5 = Always</p>
+<p><b>Scale:</b> 1 = Never · 2 = Seldom · 3 = Sometimes · 4 = Often · 5 = Always</p>
 
 <form id="quiz"></form>
 
-<button onclick="calculate()">See My Results</button>
+<button onclick="calculate()">View My Results</button>
 
 <div class="results" id="results">
 <h2>Your Conflict Style Comparison</h2>
 
 <div class="grid">
-<div>
+<div class="card">
 <h3>With My Manager</h3>
 <canvas id="chartManager"></canvas>
 <p id="textManager"></p>
 </div>
 
-<div>
+<div class="card">
 <h3>With My Reportees</h3>
 <canvas id="chartReportees"></canvas>
 <p id="textReportees"></p>
@@ -53,9 +100,9 @@ button { margin-top:20px; padding:12px 20px; background:#4f46e5; color:#fff; bor
 <div class="note">
 <h3>Reflection</h3>
 <ul>
-<li>Where do you see the biggest shift between managing up and down?</li>
-<li>Which styles feel deliberate vs automatic?</li>
-<li>Which style might you need to use more intentionally?</li>
+<li>Where do you see the biggest difference between managing up and down?</li>
+<li>Which behaviours are conscious choices vs automatic reactions?</li>
+<li>Which style might you need to strengthen in one direction?</li>
 </ul>
 </div>
 </div>
@@ -98,6 +145,14 @@ const styleMap = {
 "Collaboration":[4,9,14,19,24]
 };
 
+const styleInsights = {
+"Avoidance":"You tend to step back from conflict to reduce tension. This can help cool situations, but overuse may leave important issues unresolved.",
+"Competition":"You push for clarity and outcomes. This creates speed and decisiveness, but may strain relationships if overused.",
+"Compromise":"You look for balance and fairness. This helps move things forward, but may lead to surface-level solutions.",
+"Accommodation":"You prioritise harmony and relationships. This builds goodwill, but your own needs may get sidelined.",
+"Collaboration":"You seek win–win solutions. This creates strong alignment, but requires time and energy."
+};
+
 const styles = Object.keys(styleMap);
 const form = document.getElementById("quiz");
 
@@ -133,7 +188,7 @@ function calculate(){
 }
 
 function render(scores, chartId, textId){
-  const data = styles.map(s=>Math.round(scores[s] / 25 * 100));
+  const data = styles.map(s=>Math.round(scores[s]/25*100));
   new Chart(document.getElementById(chartId), {
     type: "radar",
     data: { labels: styles, datasets: [{ data, fill:true }] },
@@ -141,8 +196,8 @@ function render(scores, chartId, textId){
   });
 
   const dominant = styles[data.indexOf(Math.max(...data))];
-  document.getElementById(textId).innerText =
-    "Dominant style: " + dominant + ". This reflects how frequently you rely on this approach in this relationship.";
+  document.getElementById(textId).innerHTML =
+    `<b>Dominant style:</b> ${dominant}<br><br>${styleInsights[dominant]}`;
 }
 </script>
 </body>
