@@ -187,8 +187,42 @@ function calculate(){
   document.getElementById("results").style.display="block";
 }
 
+const detailedInsights = {
+  Avoidance: {
+    meaning: "You tend to step back from conflict to reduce tension or emotional risk.",
+    strengths: "Creates space, prevents escalation, useful when issues are minor or emotions are high.",
+    risks: "Important issues may remain unresolved; others may interpret silence as disengagement.",
+    best: "When the issue is low priority or more information is needed."
+  },
+  Competition: {
+    meaning: "You focus on asserting your position and driving outcomes.",
+    strengths: "Creates clarity, speed, and decisive action.",
+    risks: "May damage relationships or reduce openness if overused.",
+    best: "When quick decisions are required or stakes are high."
+  },
+  Compromise: {
+    meaning: "You aim for a middle ground where each side gives up something.",
+    strengths: "Moves conversations forward and feels fair to all parties.",
+    risks: "Can result in average solutions that don’t fully address root issues.",
+    best: "When time is limited and collaboration is not feasible."
+  },
+  Accommodation: {
+    meaning: "You prioritise harmony and the other person’s needs over your own.",
+    strengths: "Builds trust, goodwill, and preserves relationships.",
+    risks: "Your own concerns may be overlooked; resentment can build over time.",
+    best: "When the relationship matters more than the outcome."
+  },
+  Collaboration: {
+    meaning: "You seek win–win solutions that address both goals and relationships.",
+    strengths: "Creates alignment, trust, and high-quality outcomes.",
+    risks: "Requires time and energy; may slow decisions.",
+    best: "When issues are complex and long-term impact matters."
+  }
+};
+
 function render(scores, chartId, textId){
-  const data = styles.map(s=>Math.round(scores[s]/25*100));
+  const data = styles.map(s => Math.round(scores[s] / 25 * 100));
+
   new Chart(document.getElementById(chartId), {
     type: "radar",
     data: { labels: styles, datasets: [{ data, fill:true }] },
@@ -196,9 +230,17 @@ function render(scores, chartId, textId){
   });
 
   const dominant = styles[data.indexOf(Math.max(...data))];
-  document.getElementById(textId).innerHTML =
-    `<b>Dominant style:</b> ${dominant}<br><br>${styleInsights[dominant]}`;
+  const d = detailedInsights[dominant];
+
+  document.getElementById(textId).innerHTML = `
+    <b>Dominant style: ${dominant}</b><br><br>
+    <b>What this means:</b> ${d.meaning}<br><br>
+    <b>Strengths:</b> ${d.strengths}<br><br>
+    <b>Watch-outs:</b> ${d.risks}<br><br>
+    <b>Most effective when:</b> ${d.best}
+  `;
 }
+
 </script>
 </body>
 </html>
